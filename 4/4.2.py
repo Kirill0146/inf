@@ -29,10 +29,26 @@ def brench_1(x0, y0, k):
     surface = pygame.Surface([w, h], pygame.SRCALPHA)
     arc(surface, GREEN, (0, 0, 400, 200), PI * 0.2, PI * 1 , 15)
     surface = pygame.transform.rotate(surface, -45 + 12)
-    ellipse(surface, GREEN, (300, 60, 5.0 * 5, 34 * 5))
-    ellipse(surface, GREEN, (360, 65, 5.0 * 5, 34 * 5))
-    ellipse(surface, GREEN, (420, 75, 5.0 * 5, 34 * 5))
+    ellipse(surface, GREEN, (300, 60, 6.0 * 5, 34 * 5))
+    ellipse(surface, GREEN, (360, 65, 6.0 * 5, 34 * 5))
+    ellipse(surface, GREEN, (420, 75, 6.0 * 5, 34 * 5))
     options(x0 - 100, y0 - 40, int(round(w * k)), int(round(h * k)), -12, surface)
+
+def brench_2(x0, y0, k):
+    #Вторая веточка
+    w = 400
+    h = 600
+    surface = pygame.Surface([w, h], pygame.SRCALPHA)
+    arc(surface, GREEN, (0, 0, 400 * 1.5, 190 * 1.5), PI * 0.2, PI * 0.9 , 15)
+    surface = pygame.transform.rotate(surface, -45 + 12)
+    ellipse(surface, GREEN, (300, 95, 6.0 * 5, 34 * 5))
+    ellipse(surface, GREEN, (340, 92, 6.0 * 5, 34 * 5))
+    ellipse(surface, GREEN, (390, 110, 6.0 * 5, 34 * 5))
+    ellipse(surface, GREEN, (440, 130, 6.0 * 5, 34 * 5))
+    ellipse(surface, GREEN, (510, 145, 6.0 * 5, 34 * 5))
+    
+    options(x0 - 100, y0 - 50, int(round(w * k)), int(round(h * k)), -12, surface)
+
 
 def trunk_1():
     #Первый ствол
@@ -43,6 +59,7 @@ def trunk_1():
 
 brench_1(220, 220, 0.4)
 trunk_1()
+brench_2(198, 137, 0.41)
 
 pygame.display.update()
 clock = pygame.time.Clock()
