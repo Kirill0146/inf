@@ -80,9 +80,29 @@ def bambuk(x, y, kx, ky):
 
     options(x, y, int(round(750 * kx)), int(round(500 * ky)), 0, False, surface, screen)
 
+def panda():
+    file = open('панда.txt', 'r')
+    s = []
+    color = "BLACK"
+    for a in file:
+        k = a.replace('\n', '')
+        if len(k.split()) == 1:
+            if len(s) != 0:
+                polygon(screen, color, s)
+            s = []
+            color = k
+        else:
+            a, b = k.split()
+            s.append([float(a), float(b)])
+    polygon(screen, color, s)       
+    file.close()
+    circle(screen, BLACK, (476.6, 288.9), 18.9)
+    ellipse(screen, BLACK, (417.1, 260.2, 25.7, 37.3))
+    ellipse(screen, BLACK, (423.8, 312.3, 28.7, 17.2))
     
-bambuk(0, 0, 1, 1) #Первый бамбук
-bambuk(-100, -120, 2, 1.3) #Второй бамбук
+bambuk(-100, 0, 1, 1) #Первый бамбук
+bambuk(-150, -120, 2, 1.3) #Второй бамбук
+panda()
 
 pygame.display.update()
 clock = pygame.time.Clock()
