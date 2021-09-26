@@ -1,5 +1,6 @@
 import pygame
 from pygame.draw import *
+import math
 
 pygame.init()
 
@@ -7,6 +8,7 @@ GREEN = (0, 104, 52)
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 FPS = 30
+PI = math.pi
 screen = pygame.display.set_mode((750, 500))
 
 
@@ -21,16 +23,18 @@ def options(x0, y0, w, h, alpha, surface):
     screen.blit(surface, (x0, y0))
 
 def bamb_1(x0, y0, k):
-    #Первый бамбук (проверка options)
-    w = 85
-    h = 120
+    #Первая веточка
+    w = 400
+    h = 600
     surface = pygame.Surface([w, h], pygame.SRCALPHA)
+    arc(surface, GREEN, (0, 0, 400, 200), PI * 0.2, PI * 1 , 15)
+    surface = pygame.transform.rotate(surface, -45 + 12)
+    ellipse(surface, GREEN, (300, 60, 5.0 * 5, 34 * 5))
+    ellipse(surface, GREEN, (360, 65, 5.0 * 5, 34 * 5))
+    ellipse(surface, GREEN, (420, 75, 5.0 * 5, 34 * 5))
+    options(x0, y0, int(round(w * k)), int(round(h * k)), -12, surface)
 
-    pygame.draw.ellipse(surface, GREEN, (7, 0, 85, 9))
-
-    options(x0, y0, w * k, h * k, 45, surface)
-
-bamb_1(100, 100, 2)
+bamb_1(100, 100, 0.5)
 
 pygame.display.update()
 clock = pygame.time.Clock()
