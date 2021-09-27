@@ -81,6 +81,8 @@ def bambuk(x, y, kx, ky):
     options(x, y, int(round(750 * kx)), int(round(500 * ky)), 0, False, surface, screen)
 
 def panda():
+    #Панда
+    ellipse(screen, WHITE, (418.5, 219, 203, 118.2))
     file = open('панда.txt', 'r')
     s = []
     color = "BLACK"
@@ -102,7 +104,7 @@ def panda():
     
 bambuk(-100, 0, 1, 1) #Первый бамбук
 bambuk(-150, -120, 2, 1.3) #Второй бамбук
-panda()
+panda() #Панда
 
 pygame.display.update()
 clock = pygame.time.Clock()
