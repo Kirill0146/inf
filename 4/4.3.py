@@ -85,7 +85,7 @@ def panda():
     ellipse(surface, WHITE, (418.5, 219, 203, 118.2)) #Панда1. Тело
     ellipse(surface, WHITE, (331.1, 373.4, 39.6 * 2, 23 * 2)) #Панда2. Тело
     
-    file = open('панда2.txt', 'r')
+    file = open('4.3.txt', 'r')
     s = []
     color = "BLACK"
     for a in file:

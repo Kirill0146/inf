@@ -83,7 +83,7 @@ def bambuk(x, y, kx, ky):
 def panda():
     #Панда
     ellipse(screen, WHITE, (418.5, 219, 203, 118.2))
-    file = open('панда.txt', 'r')
+    file = open('4.2.txt', 'r')
     s = []
     color = "BLACK"
     for a in file:
