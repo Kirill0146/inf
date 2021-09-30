@@ -81,27 +81,40 @@ def bambuk(x, y, kx, ky):
     options(x - 175, y - 130, int(round(750 * kx)), int(round(500 * ky)), 0, False, surface, screen)
 
 def panda():
-    #Панда
-    ellipse(screen, WHITE, (418.5, 219, 203, 118.2))
-    file = open('панда.txt', 'r')
+    surface = pygame.Surface([750, 500], pygame.SRCALPHA)
+    ellipse(surface, WHITE, (418.5, 219, 203, 118.2)) #Панда1. Тело
+    ellipse(surface, WHITE, (331.1, 373.4, 39.6 * 2, 23 * 2)) #Панда2. Тело
+    
+    file = open('панда2.txt', 'r')
     s = []
     color = "BLACK"
     for a in file:
         k = a.replace('\n', '')
-        if len(k.split()) == 1:
+        if len(k.split()) <= 1:
             if len(s) != 0:
-                polygon(screen, color, s)
+                polygon(surface, color, s)
             s = []
             color = k
         else:
             a, b = k.split()
             s.append([float(a), float(b)])
-    polygon(screen, color, s)       
+    polygon(surface, color, s)       
     file.close()
-    circle(screen, BLACK, (476.6, 288.9), 18.9)
-    ellipse(screen, BLACK, (417.1, 260.2, 25.7, 37.3))
-    ellipse(screen, BLACK, (423.8, 312.3, 28.7, 17.2))
+
+    #Остатки панды1
+    circle(surface, BLACK, (476.6, 288.9), 18.9)
+    ellipse(surface, BLACK, (417.1, 260.2, 25.7, 37.3))
+    ellipse(surface, BLACK, (423.8, 312.3, 28.7, 17.2))
+
+    #Остатки панды2
+    circle(surface, BLACK, (346.5, 400.7), 7.4)
+    ellipse(surface, BLACK, (322.6, 389.3, 10.6, 14.6))
+    ellipse(surface, BLACK, (325.7, 410, 15, 9))
     
+    options(0, 0, 750, 500, 0, False, surface, screen)
+
+
+
 bambuk(0, 160, 1, 1) #Первый бамбук
 bambuk(150, 106, 1.0, 1.2) #Второй бамбук
 bambuk(50, -20, 2, 1.5) #Третий бамбук
