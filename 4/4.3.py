@@ -3,6 +3,7 @@
 #Рисование бамбука оформлено в виде отдельной функции, что позволяет нарисовать сколько угодно бамбука
 #Рисование панд НЕ оформлено в виде отдельной функций, в силу того, что у панд сильно отличаются лапы
 
+
 import pygame 
 from pygame.draw import *
 import math
@@ -19,8 +20,8 @@ PI = math.pi #Пи
 W, H = 750, 500 #Ширина и высота главного окна
 
 screen = pygame.display.set_mode((W, H)) #Окно screen
-
 rect(screen, (255, 177, 129), (0, 0, 750, 500)) #Задний фон
+
 
 def options(x0, y0, w, h, alpha, flag_y, surface, screen_0):
     #Поворачивает surface на alpha, переводит размеры в w*h, отражает относительно игрек,
@@ -33,9 +34,11 @@ def options(x0, y0, w, h, alpha, flag_y, surface, screen_0):
     screen_0.blit(surface, (x0, y0)) #Размещает surface на screen_0 в (x0, y0)
     return screen_0 #Возвращает картинку screen_0, на которой теперь уже наложен surface
 
+
 def brench_1(x0, y0, kx, ky, flag_y, screen_0):
     #Первая веточка
     #Координаты (x0, y0), коэффициент увеличение по икс и по игрек, флаг на отражение относительно оси игрек (отражает, если True), рисует на screen_0
+    
     w, h = 400, 600 #ширина и высота
     surface = pygame.Surface([w, h], pygame.SRCALPHA) #Создает картинку w*h, полностью прозрачную
     arc(surface, GREEN, (0, 0, 400, 200), PI * 0.2, PI * 1 , 15) #Рисование дуги-веточки
@@ -46,9 +49,11 @@ def brench_1(x0, y0, kx, ky, flag_y, screen_0):
     surface = options(x0 - 100, y0 - 40, int(round(w * kx)), int(round(h * ky)), -12, flag_y, surface, screen_0) #Обновляю surface и ставляю в screen_0
     #(поворачиваю на 12, растягиваю, отражаю по игрек (если True), ставлю в соответствующие координаты)
 
+
 def brench_2(x0, y0, kx, ky, flag_y, screen_0):
     #Вторая веточка
     #Координаты (x0, y0), коэффициент увеличение по икс и по игрек, флаг на отражение относительно оси игрек, рисует на screen_0
+    
     w, h = 400, 600 #ширина и высота
     surface = pygame.Surface([w, h], pygame.SRCALPHA) #Создает картинку w*h, полностью прозрачную
     arc(surface, GREEN, (0, 0, 500 * 1.5, 220 * 1.5), PI * 0.1, PI * 0.9 , 15)#Рисование дуги-веточки
@@ -62,9 +67,11 @@ def brench_2(x0, y0, kx, ky, flag_y, screen_0):
     surface = options(x0 - 100, y0 - 50, int(round(w * kx)), int(round(h * ky)), -12, flag_y, surface, screen_0)#Обновляю surface и ставляю в screen_0
     #(поворачиваю на 12, растягиваю, отражаю по игрек (если True), ставлю в соответствующие координаты)
 
+
 def trunk(x0, y0, kx, ky, screen_0):
     #Ствол
     #Координаты (x0, y0), коэффициент масштабирования, рисует на screen_0
+    
     w, h = 750, 500 #Ширина и высота
     surface = pygame.Surface([w, h], pygame.SRCALPHA) #Создает картинку w*h, полностью прозрачную
     rect(surface, GREEN, (254, 221, 8.6, 64)) #Прямоугольник 1
@@ -74,9 +81,11 @@ def trunk(x0, y0, kx, ky, screen_0):
 
     surface = options(x0 - 254, y0 - 115, int(round(w * kx)), int(round(h * ky)), 0, False, surface, screen_0)
 
+
 def bambuk(x, y, kx, ky):
     #Рисует бамбук
     #Координаты (x, y), коэффициент масштабирования
+    
     surface = pygame.Surface([750, 500], pygame.SRCALPHA) #Создает картинку w*h, полностью прозрачную
     brench_1(220, 220, 0.4, 0.4, False, surface) #Первая ветка
     
@@ -87,8 +96,10 @@ def bambuk(x, y, kx, ky):
 
     options(x - 175, y - 130, int(round(750 * kx)), int(round(500 * ky)), 0, False, surface, screen)
 
+
 def panda():
     #Рисует обе панды: Панда1 -- правая большая панда, Панда2 -- маленькая панда, слева
+    
     w, h = 750, 500 #Ширина и высота
     surface = pygame.Surface([750, 500], pygame.SRCALPHA) #Создает картинку w*h, полностью прозрачную
     ellipse(surface, WHITE, (418.5, 219, 203, 118.2)) #Панда1. Тело (овал)
@@ -98,16 +109,22 @@ def panda():
     #Файл имеет следующую структуру: сперва цвет большими буквами, затем пары координат polygon
     list_coords = [] #Список координат для рисования polygon
     color = "BLACK" #Цвет по умолчанию (начальный цвет)
+
     for a in file: #Построчно считываю файл
         k = a.replace('\n', '') #Так как строчка оканчивается на '\n', то его удаляем
+
         if len(k.split()) <= 1: #Если встретили строчку с одним словом, то это новый цвет и пора нарисовать polygon
+
             if len(list_coords) != 0: #Если список координат не пуст, то рисуем polygon
                 polygon(surface, color, list_coords) #polygon
+
             list_coords = [] #Обнуляем список координат
             color = k #Обновляем цвет
+
         else:
             a, b = k.split() #Считываем пару координат (x,y)
             list_coords.append([float(a), float(b)]) #Добавляем пару координат в список list_coords
+            
     polygon(surface, color, list_coords) #Рисуем последний Полигон     
     file.close() #Закрываю файл
 
