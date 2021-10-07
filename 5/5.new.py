@@ -3,12 +3,14 @@ from pygame.draw import *
 
 pygame.init()
 
-FPS = 3
+FPS = 3 #Частота
+#Цвета:
 BLACK = (0, 0, 0)
 ORANGE = (252, 153, 45)
 PURPLE = (44, 7, 33)
 REDD = (173, 65, 49)
-W, H = 700, 625
+
+W, H = 700, 625 #Ширина и высота
 
 screen = pygame.display.set_mode((W, H)) #Вся картинка разбита на 4 полосы
 
@@ -54,19 +56,23 @@ def from_file(file_name, surface):
 def bird(x0, y0, w, h):
     #Рисует птицу w*h с координатой левого верхнего угла (x0, y0)
     
-    w0, h0 = 45, 21
+    w0, h0 = 45, 21 #Размеры птицы
     surface = pygame.Surface([w0, h0], pygame.SRCALPHA) #Создает картинку w*h, полностью прозрачную
-    from_file('bird.txt', surface)
+    from_file('bird.txt', surface) #Рисует птицу на surface
     options(x0, y0, w, h, 0, False, surface, screen)
 
 def fluct(s, y0):
-    #Берет исходный список пар точек и немного меняет его
+    #Берет исходный список пар точек и немного меняет его по некому правилу
+    #Правило: d = d1 + d2,
+    #        d1 = eps * A * random(-0.5; 0.5)
+    #        d2 = eps * (y[i - 1] - y[i] + y[i + 1] - y[i]) * random(0; 1)
     
     import random
     eps = 0.02 #Процент от амплитуды
     k = 2 #Коэффициент поправки
     for i in range(len(s)):
         #Учитываем поправку d, связанную с соседями (чтобы не были сильно острыми горы)
+        
         d = 0
         if i > 0:
             d += (s[i - 1][1] - s[i][1]) * random.random()
@@ -79,7 +85,7 @@ def fluct(s, y0):
 
 def get_mountains():
     #Возвращает список mountains, который состоит из трех словарей,
-    #внутри которых содержится color, x0, y0, coords
+    #внутри которых содержится color, x0, y0, coords, lx (ширина основания), ly (высота основания), dx (смещение картинки по икс), dy (смещение картинки по игрек)
 
     file = open('gor.txt', 'r')
     mountains = []
@@ -88,28 +94,31 @@ def get_mountains():
     for a in file: #Построчно считываю файл
         k = a.replace('\n', '') #Так как строчка оканчивается на '\n', то его удаляем
         if len(k.split()) == 1:
-            mountains.append({'color':'', 'x0':0, 'y0':0, 'l':0, 'coords':[]})
-            mountains[number]['color'] = eval(k)
-            if len(mountains[number]['coords']) != 0:
+            mountains.append({'color':'', 'x0':0, 'y0':0, 'lx':0, 'ly':0, 'dx':0, 'dy':0, 'coords':[]}) #Добавляю новую гору
+            if len(mountains[number]['coords']) != 0: #Если новый цвет, значит новая гора
                 number += 1
-        elif len(k.split()) == 3:
-            x0, y0, l = map(float, k.split())
-            mountains[number]['x0'], mountains[number]['y0'], mountains[number]['l'] = x0, y0, l
-        elif len(k.split()) == 2:
-            mountains[number]['coords'].append(list(map(float, k.split())))
+            mountains[number]['color'] = eval(k)
+        elif len(k.split()) == 6: #Параметры горы
+            x0, y0, lx, ly, dx, dy = map(float, k.split())
+            mountains[number]['x0'], mountains[number]['y0'], mountains[number]['lx'], mountains[number]['ly'], mountains[number]['dx'], mountains[number]['dy'] = x0 + dx, y0 + dy, lx, ly, dx, dy
+        elif len(k.split()) == 2: #Координаты одной из точки горы
+            x, y = map(float, k.split())
+            x, y = x + mountains[number]['dx'], y + mountains[number]['dy']
+            mountains[number]['coords'].append([x, y])
+
     return mountains
 
 
 def iter_mountains(mountains):
     #Рисует горы. Очередная итерация
 
-    for number in range(1):
-        mountains[number]['coords'] = fluct(mountains[number]['coords'], mountains[number]['y0'])
-        s = mountains[number]['coords']
-        s.append([mountains[number]['x0'] + mountains[0]['l'], mountains[0]['y0']])
-        s.append([mountains[number]['x0'], mountains[number]['y0']])
-        polygon(screen, mountains[number]['color'], s)
-        s.pop(len(s) - 1)
+    for number in range(len(mountains)):
+        mountains[number]['coords'] = fluct(mountains[number]['coords'], mountains[number]['y0']) #Немного флуктуируем координаты
+        s = mountains[number]['coords'] #Записываем координаты в список s
+        s.append([mountains[number]['x0'] + mountains[number]['lx'], mountains[number]['y0']  + mountains[number]['ly']]) #Добавляем в список левую нижнюю вершину
+        s.append([mountains[number]['x0'], mountains[number]['y0']]) #и правую нижнюю
+        polygon(screen, mountains[number]['color'], s) #Рисуем гору
+        s.pop(len(s) - 1) #Убираем две добавленные вершины
         s.pop(len(s) - 1)
         
     return mountains
