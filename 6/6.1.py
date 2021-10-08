@@ -1,4 +1,5 @@
 import pygame
+import math
 from pygame.draw import *
 from random import randint
 from random import random
@@ -6,10 +7,12 @@ from random import random
 pygame.init()
 
 N_BALLS = 5 #Максимальное число шариков
-N_RECTS = 5 #Максимальное число квадратов
+N_SQRS = 5 #Максимальное число квадратов
 FPS = 10
 dt = 1
 W, H = 800, 600
+TIME = 100
+
 screen = pygame.display.set_mode((W, H))
 
 SCORE = 0
@@ -23,17 +26,22 @@ BLACK = (0, 0, 0)
 COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN]
 
 all_balls = []
-all_rects = []
+all_sqrs = []
 
-def draw_score():
+
+def draw_score_and_time():
     """
-    Отображаем счет SCORE
+    Отображаем счет SCORE и время TIME
     """
 
     f = pygame.font.Font(None, 36)
     text = f.render('Счет: ' + str(SCORE), False, RED)
     screen.blit(text, (10, 10))
 
+    f = pygame.font.Font(None, 36)
+    text = f.render('Время: ' + str(round(TIME, 1)), False, RED)
+    screen.blit(text, (10, 30))
+    
 
 def draw_ball(ball):
     """
@@ -43,34 +51,36 @@ def draw_ball(ball):
     circle(screen, ball['color'], (ball['x'], ball['y']), ball['r'])
 
 
-def draw_rect(rec):
+def draw_sqr(sqr):
     """
-    Рисует квадрат в координатах (rect.x, rect.y)
+    Рисует квадрат в координатах (sqr.x, sqr.y)
     """
     
-    a, x, y, color = rec['a'], rec['x'], rec['y'], rec['color']
-    circle(screen, color, (x, y), a)
+    a, x, y, color = sqr['a'], sqr['x'], sqr['y'], sqr['color']
+    rect(screen, color, (x - a / 2, y - a / 2, a, a))
 
 
-def new_rect():
+def new_sqr():
     """
-    Создает объект rect и отображает его
+    Создает объект sqr и отображает его
     x, y: координаты центра квадрата
     Vx, Vy: проекции скоростей на ось икс и игрек
     a: сторона квадрата
     color: цвет квадрата
+    score: счет 
     """
     
-    rect = {'x':0, 'y':0, 'Vx':0, 'Vy':0, 'a':0, 'color':''}
-    rect['x'] = randint(100, W - 100)
-    rect['y'] = randint(100, H - 100)
-    rect['Vx'] = randint(-10, 10)
-    rect['Vy'] = randint(-10, 10)
-    rect['a'] = randint(10, 100)
+    sqr = {'x':0, 'y':0, 'Vx':0, 'Vy':0, 'a':0, 'color':'', 'score': 2}
+    sqr['x'] = randint(100, W - 100)
+    sqr['y'] = randint(100, H - 100)
+    sqr['Vx'] = randint(-10, 10)
+    sqr['Vy'] = randint(-10, 10)
+    sqr['a'] = randint(10, 100)
     color = COLORS[randint(0, 5)]
-    rect['color'] = color
-    draw_rect(rect)
-    all_rects.append(rect)
+    sqr['color'] = color
+    draw_sqr(sqr)
+    all_sqrs.append(sqr)
+
     
 def new_ball():
     """
@@ -79,9 +89,10 @@ def new_ball():
     Vx, Vy: проекции скоростей на ось икс и игрек
     r: радиус шарика
     color: цвет шарика
+    score: счет 
     """
     
-    ball = {'x':0, 'y':0, 'Vx':0, 'Vy':0, 'r':0, 'color':''}
+    ball = {'x':0, 'y':0, 'Vx':0, 'Vy':0, 'r':0, 'color':'', 'score': 1}
     ball['x'] = randint(100, W - 100)
     ball['y'] = randint(100, H - 100)
     ball['Vx'] = randint(-10, 10)
@@ -93,9 +104,9 @@ def new_ball():
     all_balls.append(ball)
 
 
-def border(ball):
+def border_ball(ball):
     """
-    Обновляет скорость в случае выхода за границу
+    Обновляет скорость шарика в случае выхода за границу
     """
     
     k1 = 2 #Коэффициент препендикулярной сост. скорости
@@ -118,18 +129,53 @@ def border(ball):
             ball['y'] = H
         if ball['y'] < 0:
             ball['y'] = 0
+
+            
+def border_sqr(sqr):
+    """
+    Обновляет скорость квадрата в случае выхода за границу
+    """
+    
+    k1 = 2 #Коэффициент препендикулярной сост. скорости
+    k2 = 0.25 #Коэффициент для нормальной сост. скорости
+    
+    if sqr['x'] > W or sqr['x'] < 0:
+        sqr['Vx'] *= -1 * (1 - (random() + 0.5) * k2)
+        sqr['Vy'] *= random() * k1
+        
+        if sqr['x'] > W:
+            sqr['x'] = W
+        if sqr['x'] < 0:
+            sqr['x'] = 0
+            
+    elif sqr['y'] < 0 or sqr['y'] > H:
+        sqr['Vy'] *= -1 * (1 - random() * k2)
+        sqr['Vx'] *= random() * k1
+        
+        if sqr['y'] > H:
+            sqr['y'] = H
+        if sqr['y'] < 0:
+            sqr['y'] = 0
+
             
 def move():
     """
     Проверяет для каждого шарика выход за границы
     Затем перемещает каждый шарик
+    Аналогично для квадрата
     """
 
     for ball in all_balls:
-        border(ball)
+        border_ball(ball)
         ball['x'] += ball['Vx'] * dt
         ball['y'] += ball['Vy'] * dt
+
+    for sqr in all_sqrs:
+        border_sqr(sqr)
+        sqr['x'] += sqr['Vx'] * dt
+        sqr['y'] += sqr['Vy'] * dt
     dead()
+
     
 def dead():
     """
@@ -137,18 +183,32 @@ def dead():
     """
 
     screen.fill(BLACK)
-    draw_score()
+    draw_score_and_time()
+    
     for ball in all_balls:
         draw_ball(ball)
+        
+    for sqr in all_sqrs:
+        draw_sqr(sqr)
 
 
-def delete(index):
+def delete_ball(index):
     """
-    Удаляет щарик из списка all_balls с индексом index
+    Удаляет шарик из списка all_balls с индексом index
     index: индекс шарика
     """
 
     del all_balls[index]
+    dead()
+
+
+def delete_sqr(index):
+    """
+    Удаляет квадрат из списка all_sqrs с индексом index
+    index: индекс шарика
+    """
+
+    del all_sqrs[index]
     dead()
 
 
@@ -162,14 +222,28 @@ def dist(x1, y1, x2, y2):
     return (x1 - x2) ** 2 + (y1 - y2) ** 2
 
 
-def update_score(ball):
+def update_score(obj):
     """
     Обновляет счет
     """
 
     global SCORE
     
-    SCORE += 1
+    SCORE += obj['score']
+
+
+def check_sqr(x0, y0, x, y, a):
+    """
+    Проверяет, находится ли точка (x0, y0) в квадрате
+    с центром в (x, y) и шириной a. Возвращает True/False
+    x0, y0: координаты точки
+    x, y: координаты центра квадрата
+    a: сторона квадрата
+    """
+    
+    if x0 >= x - a / 2 and x0 <= x + a / 2 and y0 >= y - a / 2 and y0 <= y + a / 2:
+        return True
+    return False
 
 
 def click(event):
@@ -185,19 +259,43 @@ def click(event):
     while i < len(all_balls):
         ball = all_balls[i]
         x, y, r = ball['x'], ball['y'], ball['r']
-        
         if dist(x0, y0, x, y) <= r ** 2:
             update_score(ball)
-            delete(i)
+            delete_ball(i)
         else: 
             i += 1
 
+    i = 0
+    while i < len(all_sqrs):
+        sqr = all_sqrs[i]
+        if check_sqr(x0, y0, sqr['x'], sqr['y'], sqr['a']):
+            update_score(sqr)
+            delete_sqr(i)
+        else: 
+            i += 1
+
+
+def game_over():
+    """
+    Сообщение о конце игры
+    """
+
+    screen.fill(BLACK)
+    
+    f = pygame.font.Font(None, 70)
+    text = f.render('Игра окончена!', False, RED)
+    screen.blit(text, (100, 200))
+
+    f = pygame.font.Font(None, 70)
+    text = f.render('Ваш счет: ' + str(SCORE), False, RED)
+    screen.blit(text, (100, 250))
+    
 
 pygame.display.update()
 clock = pygame.time.Clock()
 finished = False
 
-draw_score()
+draw_score_and_time()
 
 while not finished:
     clock.tick(FPS)
@@ -205,10 +303,20 @@ while not finished:
         if event.type == pygame.QUIT:
             finished = True
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            click(event)
-    if len(all_rects) < N_RECTS:
-        new_rect()
-    move()
+            if TIME > 0:
+                click(event)
+    if TIME <= 0:
+        TIME = 0
+        game_over()
+        
+    if len(all_sqrs) < N_SQRS:
+        new_sqr()
+    if len(all_balls) < N_BALLS:
+        new_ball()
+    
+    if TIME > 0:
+        TIME -= 1/FPS
+        move()
     pygame.display.update()
 
 pygame.quit()
