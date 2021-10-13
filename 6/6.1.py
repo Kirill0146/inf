@@ -10,12 +10,14 @@ N_BALLS = 5 #Максимальное число шариков
 N_SQRS = 5 #Максимальное число квадратов
 FPS = 30
 dt = 1
-W, H = 800, 600
-TIME = 100
+FLAG = True #Флаг на то, окончилась ли игра
+W, H = 800, 600 #Ширина и высота окна
+TIME = 5 #Время игры
 
 screen = pygame.display.set_mode((W, H))
 
-SCORE = 0
+SCORE = 0 #Текущий счет игрока
+#Цвета:
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 YELLOW = (255, 255, 0)
@@ -23,10 +25,10 @@ GREEN = (0, 255, 0)
 MAGENTA = (255, 0, 255)
 CYAN = (0, 255, 255)
 BLACK = (0, 0, 0)
-COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN]
+COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN] #Список цветов
 
-all_balls = []
-all_sqrs = []
+all_balls = [] #Список шаров
+all_sqrs = [] #Список квадратов
 
 
 def draw_score_and_time():
@@ -278,21 +280,72 @@ def click(event):
 
     update_score(score)
 
+
+def update_results():
+    """
+    Обновляет результат данного игрока в файле.
+    Пересортировывает игрока по рейтингу.
+    Выводит результат игрока, его лучший результат,
+    положение в рейтинге, сам рейтинг
+    """
+
+    flag = True
+
+    print('Игра окончена!')
+    print('Введите Ваше Имя:')
+    name_new, score_new = input(), SCORE
+    
+    file = open('best_players.txt', 'r')    
+    players_and_scores = []
+
+    for line in file:
+        line = line.replace('\n', '')
+        line = line.replace(':', '')
+        number, name, score = line.split()
+        if name == name_new:
+            flag = False
+            score = max(int(score), score_new)
+            score_new = max(int(score), score_new)
+            
+        players_and_scores.append([int(score), name])
+        
+    if flag:
+        players_and_scores.append([score_new, name_new])
+    players_and_scores.sort()
+    players_and_scores.reverse()
+    
+    new_text = ''
+    for i in range(len(players_and_scores)):
+        name, score = players_and_scores[i][1], str(players_and_scores[i][0])
+        new_text += str(i + 1) + '. ' + name + ': ' + score + '\n'
+    
+    file.close()
+    file = open('best_players.txt', 'w')
+    file.write(new_text)
+
+    k = 0
+    for i in range(len(players_and_scores)):
+        if score_new >= players_and_scores[i][0]:
+            break
+        else:
+            k += 1
+    
+    print('Ваш результат успешно записан!')
+    print('Ваш счет:', SCORE)
+    print('Ваш лучший счет:', score_new)
+    print('Ваше место в рейтинге:', k + 1)
+    print('Рейтинг:')
+    print(new_text)
+
+
 def game_over():
     """
-    Сообщение о конце игры
+    Конец игры
     """
 
-    screen.fill(BLACK)
+    pygame.quit()
+    update_results()
     
-    f = pygame.font.Font(None, 70)
-    text = f.render('Игра окончена!', False, RED)
-    screen.blit(text, (100, 200))
-
-    f = pygame.font.Font(None, 70)
-    text = f.render('Ваш счет: ' + str(SCORE), False, RED)
-    screen.blit(text, (100, 250))
-
 
 def create():
     """
@@ -311,41 +364,35 @@ def check_TIME():
     Иначе обновляем время, запускаем следующую итерацию движения
     """
 
-    global TIME
+    global TIME, FLAG
     
     if TIME <= 0:
         TIME = 0
-        game_over()
+        if (FLAG):
+            game_over()
+            FLAG = False
     else:
         TIME -= 1/FPS
         move()
 
-
-def update_results():
-    """
-    Обновляет результат данного участника. Пересортировывает участников по рейтингу.
-    """
-    pass
-
     
 pygame.display.update()
 clock = pygame.time.Clock()
-finished = False
 
 draw_score_and_time()
 
-while not finished:
+while FLAG:
     clock.tick(FPS)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             finished = True
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            if TIME > 0:
-                click(event)
+            click(event)
                 
     create()
     check_TIME()
 
-    pygame.display.update()
+    if FLAG:
+        pygame.display.update()
 
 pygame.quit()
