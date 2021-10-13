@@ -8,7 +8,7 @@ pygame.init()
 
 N_BALLS = 5 #Максимальное число шариков
 N_SQRS = 5 #Максимальное число квадратов
-FPS = 10
+FPS = 30
 dt = 1
 W, H = 800, 600
 TIME = 100
@@ -67,15 +67,17 @@ def new_sqr():
     Vx, Vy: проекции скоростей на ось икс и игрек
     a: сторона квадрата
     color: цвет квадрата
-    score: счет 
+    score: счет
+    ay: ускорение квадрата по игрек
     """
     
-    sqr = {'x':0, 'y':0, 'Vx':0, 'Vy':0, 'a':0, 'color':'', 'score': 2}
+    sqr = {'x':0, 'y':0, 'Vx':0, 'Vy':0, 'a':0, 'color':'', 'score': 2, 'ay':0}
     sqr['x'] = randint(100, W - 100)
     sqr['y'] = randint(100, H - 100)
-    sqr['Vx'] = randint(-10, 10)
-    sqr['Vy'] = randint(-10, 10)
-    sqr['a'] = randint(10, 100)
+    sqr['Vx'] = randint(-20, 20) / 3
+    sqr['Vy'] = randint(-10, 10) / 3
+    sqr['a'] = randint(20, 40)
+    sqr['ay'] = random() * 2 / 3
     color = COLORS[randint(0, 5)]
     sqr['color'] = color
     draw_sqr(sqr)
@@ -95,9 +97,9 @@ def new_ball():
     ball = {'x':0, 'y':0, 'Vx':0, 'Vy':0, 'r':0, 'color':'', 'score': 1}
     ball['x'] = randint(100, W - 100)
     ball['y'] = randint(100, H - 100)
-    ball['Vx'] = randint(-10, 10)
-    ball['Vy'] = randint(-10, 10)
-    ball['r'] = randint(10, 100)
+    ball['Vx'] = randint(-10, 10) / 3
+    ball['Vy'] = randint(-10, 10) / 3
+    ball['r'] = randint(30, 50)
     color = COLORS[randint(0, 5)]
     ball['color'] = color
     draw_ball(ball)
@@ -140,8 +142,7 @@ def border_sqr(sqr):
     k2 = 0.25 #Коэффициент для нормальной сост. скорости
     
     if sqr['x'] > W or sqr['x'] < 0:
-        sqr['Vx'] *= -1 * (1 - (random() + 0.5) * k2)
-        sqr['Vy'] *= random() * k1
+        sqr['Vx'] *= -1 
         
         if sqr['x'] > W:
             sqr['x'] = W
@@ -149,8 +150,7 @@ def border_sqr(sqr):
             sqr['x'] = 0
             
     elif sqr['y'] < 0 or sqr['y'] > H:
-        sqr['Vy'] *= -1 * (1 - random() * k2)
-        sqr['Vx'] *= random() * k1
+        sqr['Vy'] *= -1 
         
         if sqr['y'] > H:
             sqr['y'] = H
@@ -174,6 +174,7 @@ def move():
         border_sqr(sqr)
         sqr['x'] += sqr['Vx'] * dt
         sqr['y'] += sqr['Vy'] * dt
+        sqr['Vy'] += sqr['ay'] * dt
     dead()
 
     
@@ -222,14 +223,15 @@ def dist(x1, y1, x2, y2):
     return (x1 - x2) ** 2 + (y1 - y2) ** 2
 
 
-def update_score(obj):
+def update_score(score):
     """
-    Обновляет счет
+    Обновляет счет по закону: сумма очков за данный клик, помноженный на количество объектов
+    score: список очков за каждый объект, в который попали данным щелком
     """
 
     global SCORE
     
-    SCORE += obj['score']
+    SCORE += sum(score) * len(score)
 
 
 def check_sqr(x0, y0, x, y, a):
@@ -252,15 +254,15 @@ def click(event):
     event: событие мыши (от 1 до 5)
     """
     
-    global SCORE 
     x0, y0 = event.pos
     i = 0
+    score = []
     
     while i < len(all_balls):
         ball = all_balls[i]
         x, y, r = ball['x'], ball['y'], ball['r']
         if dist(x0, y0, x, y) <= r ** 2:
-            update_score(ball)
+            score.append(ball['score'])
             delete_ball(i)
         else: 
             i += 1
@@ -269,11 +271,12 @@ def click(event):
     while i < len(all_sqrs):
         sqr = all_sqrs[i]
         if check_sqr(x0, y0, sqr['x'], sqr['y'], sqr['a']):
-            update_score(sqr)
+            score.append(sqr['score'])
             delete_sqr(i)
         else: 
             i += 1
 
+    update_score(score)
 
 def game_over():
     """
@@ -289,8 +292,42 @@ def game_over():
     f = pygame.font.Font(None, 70)
     text = f.render('Ваш счет: ' + str(SCORE), False, RED)
     screen.blit(text, (100, 250))
-    
 
+
+def create():
+    """
+    Создает объекты: шары и квадраты, если их стало меньше положенного
+    """
+
+    if len(all_sqrs) < N_SQRS:
+        new_sqr()
+    if len(all_balls) < N_BALLS:
+        new_ball()
+
+
+def check_TIME():
+    """
+    Обновляет таймер. Если время вышло, то вызываем функцию game_over (конец игры)
+    Иначе обновляем время, запускаем следующую итерацию движения
+    """
+
+    global TIME
+    
+    if TIME <= 0:
+        TIME = 0
+        game_over()
+    else:
+        TIME -= 1/FPS
+        move()
+
+
+def update_results():
+    """
+    Обновляет результат данного участника. Пересортировывает участников по рейтингу.
+    """
+    pass
+
+    
 pygame.display.update()
 clock = pygame.time.Clock()
 finished = False
@@ -305,18 +342,10 @@ while not finished:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if TIME > 0:
                 click(event)
-    if TIME <= 0:
-        TIME = 0
-        game_over()
-        
-    if len(all_sqrs) < N_SQRS:
-        new_sqr()
-    if len(all_balls) < N_BALLS:
-        new_ball()
-    
-    if TIME > 0:
-        TIME -= 1/FPS
-        move()
+                
+    create()
+    check_TIME()
+
     pygame.display.update()
 
 pygame.quit()
