@@ -10,9 +10,17 @@ N_BALLS = 5 #Максимальное число шариков
 N_SQRS = 5 #Максимальное число квадратов
 FPS = 30
 dt = 1
-FLAG = True #Флаг на то, окончилась ли игра
+FLAG = 1
+"""Флаг на то, где сейчас игра:
+            0: Игра окончена
+            1: Меню
+            2: Рейтинг
+            3: Готовность перейти в Игру
+            4: Игра
+"""
+
 W, H = 800, 600 #Ширина и высота окна
-TIME = 5 #Время игры
+TIME = 100 #Время игры
 
 screen = pygame.display.set_mode((W, H))
 
@@ -29,8 +37,195 @@ COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN] #Список цветов
 
 all_balls = [] #Список шаров
 all_sqrs = [] #Список квадратов
+all_buts = [] #Список кнопок
 
 
+def dead():
+    """
+    Уничтожает все объекты и закрашивает экран
+    """
+
+    global all_balls, all_sqrt, all_buts
+    
+    screen.fill(BLACK)
+    all_balls = []
+    all_sqrt = []
+    all_buts = []
+
+def return_menu():
+    """
+    Команда, которая вызывается при нажатие на кнопку "Назад" (в меню)
+    Меняет FLAG, возвращение в меню
+    """
+
+    dead()
+    global FLAG
+    FLAG = 1
+ 
+
+def new_game():
+    """
+    Команда, которая вызывается при нажатие на кнопку "Новая игра"
+    Меняет FLAG, запускается игра
+    """
+
+    global FLAG
+    FLAG = 3
+
+
+def exit_game():
+    """
+    Команда, которая вызывается при нажатие на кнопку "Выход"
+    Выход из игры
+    """
+    
+    global FLAG
+    FLAG = 0
+
+
+def rating():
+    """
+    Команда, которая вызывается при нажатие на кнопку  "Рейтинг"
+    Показывает рейтинг
+    """
+    
+    global FLAG
+    FLAG = 2
+
+
+def draw_but(but):
+    """
+    Рисует кнопку
+    """
+    
+    rect(screen, but['color_but'], (but['x'], but['y'], but['w'], but['h']))
+    
+    f = pygame.font.Font(None, but['font_text'])
+    text = f.render(but['text'], False, but['color_text'])
+    screen.blit(text, (but['x'] + but['x_text'], but['y'] + but['y_text']))
+
+
+def create_but(x, y, w, h, color_but, color_text,
+               text, x_text, y_text, font_text, name, command):
+    """
+        Создает объект кнопка
+    x, y: координата нижнего левого угла кнопки
+    w, h: ширина и высота кнопки
+    color_but: Цвет кнопки
+    color_text: Цвет текста
+    text: Текст
+    x_text, y_text: Координаты левого верхнего угла текста
+        относительно левого верхнего угла прямоугольника
+    font_text: Размер шрифта 
+    name: Имя кнопки
+    command: Функция, которая выполняется после нажатия кнопки
+    """
+    
+    but = {'x':x, 'y':y, 'w':w, 'h':h, 'color_but':color_but,
+           'color_text':color_text, 'text':text, 'name':name,
+           'x_text':x_text, 'y_text':y_text,
+           'font_text':font_text, 'command':command}
+    rect(screen, color_but, (x, y, w, h))
+    draw_but(but)
+    all_buts.append(but)
+
+
+def print_rating():
+    """
+    Выводит рейтинг игроков
+    """
+
+    dead()
+    file = open('best_players.txt', 'r')
+    #text = file.read()
+
+    i = 0
+    for line in file:
+        if i <= 20:
+            f = pygame.font.Font(None, 36)
+            text = f.render(line.replace('\n', ''), False, 'red')
+            screen.blit(text, (20, 10 + i * 25))
+        i += 1
+
+    create_but(x = 650,
+               y = 30,
+               w = 120,
+               h = 50,
+               color_but = 'red',
+               color_text = 'black',
+               text = 'Назад',
+               x_text = 5,
+               y_text = 7,
+               font_text = 50,
+               name =  'Назад',
+               command = return_menu
+        )
+    
+    
+    file.close()
+    
+
+def menu():
+    """
+    Отображает кнопки:
+    -Новая игра
+    -Рейтинг
+    -Выход
+    """
+
+    create_but(x = 300,
+               y = 100,
+               w = 200,
+               h = 50,
+               color_but = 'red',
+               color_text = 'black',
+               text = 'Новая игра',
+               x_text = 5,
+               y_text = 7,
+               font_text = 50,
+               name =  'Новая игра',
+               command = new_game)
+    
+    create_but(x = 300,
+               y = 170,
+               w = 200,
+               h = 50,
+               color_but = 'red',
+               color_text = 'black',
+               text = 'Рейтинг',
+               x_text = 35,
+               y_text = 7,
+               font_text = 50,
+               name =  'Рейтинг',
+               command = rating
+        )
+    
+    create_but(x = 300,
+               y = 240,
+               w = 200,
+               h = 50,
+               color_but = 'red',
+               color_text = 'black',
+               text = 'Выход',
+               x_text = 40,
+               y_text = 7,
+               font_text = 50,
+               name =  'Выход',
+               command = exit_game
+        )
+    
+def click_buts(event):
+    """
+    Обработка нажатий на кнопки меню
+    """
+    
+    x0, y0 = event.pos
+    
+    for but in all_buts:
+        if x0 >= but['x'] and x0 <= but['x'] + but['w'] and y0 >= but['y'] and y0 <= but['y'] + but['h']:
+            but['command']()
+
+    
 def draw_score_and_time():
     """
     Отображаем счет SCORE и время TIME
@@ -177,10 +372,10 @@ def move():
         sqr['x'] += sqr['Vx'] * dt
         sqr['y'] += sqr['Vy'] * dt
         sqr['Vy'] += sqr['ay'] * dt
-    dead()
+    born()
 
     
-def dead():
+def born():
     """
     Заново все перерисовывает
     """
@@ -193,7 +388,7 @@ def dead():
         
     for sqr in all_sqrs:
         draw_sqr(sqr)
-
+        
 
 def delete_ball(index):
     """
@@ -202,7 +397,7 @@ def delete_ball(index):
     """
 
     del all_balls[index]
-    dead()
+    born()
 
 
 def delete_sqr(index):
@@ -212,7 +407,7 @@ def delete_sqr(index):
     """
 
     del all_sqrs[index]
-    dead()
+    born()
 
 
 def dist(x1, y1, x2, y2):
@@ -227,7 +422,8 @@ def dist(x1, y1, x2, y2):
 
 def update_score(score):
     """
-    Обновляет счет по закону: сумма очков за данный клик, помноженный на количество объектов
+    Обновляет счет по закону: сумма очков за данный клик,
+        помноженный на количество объектов
     score: список очков за каждый объект, в который попали данным щелком
     """
 
@@ -250,7 +446,7 @@ def check_sqr(x0, y0, x, y, a):
     return False
 
 
-def click(event):
+def click_game(event):
     """
     Если попали по шарику, то он удаляется и счет обновляется
     event: событие мыши (от 1 до 5)
@@ -374,25 +570,39 @@ def check_TIME():
     else:
         TIME -= 1/FPS
         move()
-
+    
     
 pygame.display.update()
 clock = pygame.time.Clock()
 
-draw_score_and_time()
-
 while FLAG:
     clock.tick(FPS)
+
+
+    #Обработка в зависимости от FLAG, вне зависимости от события:
+    if FLAG == 1:
+        menu()
+    elif FLAG == 2:
+        print_rating()
+    elif FLAG == 3:
+        draw_score_and_time()
+        FLAG = 4
+    elif FLAG == 4:
+        create()
+        check_TIME()
+        
+    #Обработка в зависимости от FLAG, в зависимости от события:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            finished = True
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            click(event)
+            FLAG = 0
+
+        if FLAG == 1 or FLAG == 2:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                click_buts(event)
+        elif FLAG == 4:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                click_game(event)
                 
-    create()
-    check_TIME()
-
-    if FLAG:
-        pygame.display.update()
-
+    pygame.display.update()
+    
 pygame.quit()
