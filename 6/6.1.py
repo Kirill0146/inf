@@ -41,6 +41,20 @@ all_sqrs = [] #Список квадратов
 all_buts = [] #Список кнопок
 
 
+def draw_text(text, x, y, color_text, font_text):
+    """
+    Рисует текст на экране
+    text: Текст
+    x, y: координаты веррнего левого угла текста
+    color_text: цвет текста
+    font_text: шрифт текста
+    """
+    
+    f = pygame.font.Font(None, font_text)
+    text = f.render(text, False, color_text)
+    screen.blit(text, (x, y))
+
+
 def dead():
     """
     Уничтожает все объекты и закрашивает экран
@@ -52,6 +66,7 @@ def dead():
     all_balls = []
     all_sqrt = []
     all_buts = []
+
 
 def return_menu():
     """
@@ -100,10 +115,8 @@ def draw_but(but):
     """
     
     rect(screen, but['color_but'], (but['x'], but['y'], but['w'], but['h']))
-    
-    f = pygame.font.Font(None, but['font_text'])
-    text = f.render(but['text'], False, but['color_text'])
-    screen.blit(text, (but['x'] + but['x_text'], but['y'] + but['y_text']))
+    draw_text(but['text'], but['x'] + but['x_text'], but['y'] + but['y_text'],
+              but['color_text'], but['font_text'])
 
 
 def create_but(x, y, w, h, color_but, color_text,
@@ -140,15 +153,11 @@ def print_rating():
     file = open('best_players.txt', 'r')
 
     i = 0
-    f = pygame.font.Font(None, 36)
-    text = f.render('Рейтинг:', False, 'red')
-    screen.blit(text, (20, 10))
+    draw_text('Рейтинг:', 20, 10, 'red', 36)
     
     for line in file:
         if i <= 20:
-            f = pygame.font.Font(None, 36)
-            text = f.render(line.replace('\n', ''), False, 'red')
-            screen.blit(text, (20, 35 + i * 25 ))
+            draw_text(line.replace('\n', ''), 20, 35 + i * 25, 'red', 36)
         i += 1
 
     create_but(x = 650,
@@ -235,14 +244,9 @@ def draw_score_and_time():
     Отображаем счет SCORE и время TIME
     """
 
-    f = pygame.font.Font(None, 36)
-    text = f.render('Счет: ' + str(SCORE), False, RED)
-    screen.blit(text, (10, 10))
+    draw_text('Счет: ' + str(SCORE), 10, 10, 'red', 36)
+    draw_text('Время: ' + str(round(TIME, 1)), 10, 30, 'red', 36)
 
-    f = pygame.font.Font(None, 36)
-    text = f.render('Время: ' + str(round(TIME, 1)), False, RED)
-    screen.blit(text, (10, 30))
-    
 
 def draw_ball(ball):
     """
