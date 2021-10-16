@@ -68,13 +68,24 @@ def dead():
     all_buts = []
 
 
+def complete_death():
+    """
+    Уничтожает все объеты.
+    Возвращает все глобальные константы к изначальным
+    """
+
+    global TIME, SCORE, K, SCORE_BEST
+    TIME, SCORE, K, SCORE_BEST = 10, 0, -1, 0
+    dead()
+
+    
 def return_menu():
     """
     Команда, которая вызывается при нажатие на кнопку "Назад" (в меню)
     Меняет FLAG, возвращение в меню
     """
 
-    dead()
+    complete_death()
     global FLAG
     FLAG = 1
  
@@ -568,7 +579,6 @@ def game_over():
     Конец игры
     """
 
-    #pygame.quit()
     update_results()
     dead()
     
