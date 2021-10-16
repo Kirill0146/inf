@@ -17,14 +17,15 @@ FLAG = 1
             2: Рейтинг
             3: Готовность перейти в Игру
             4: Игра
+            5: Просмотр игроком результата
 """
 
 W, H = 800, 600 #Ширина и высота окна
-TIME = 100 #Время игры
+TIME = 10 #Время игры
 
 screen = pygame.display.set_mode((W, H))
 
-SCORE = 0 #Текущий счет игрока
+SCORE, K, SCORE_BEST = 0, -1, 0 #Текущий счет игрока, место игрока в рейтинге, лучший счет игрока
 #Цвета:
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
@@ -137,14 +138,17 @@ def print_rating():
 
     dead()
     file = open('best_players.txt', 'r')
-    #text = file.read()
 
     i = 0
+    f = pygame.font.Font(None, 36)
+    text = f.render('Рейтинг:', False, 'red')
+    screen.blit(text, (20, 10))
+    
     for line in file:
         if i <= 20:
             f = pygame.font.Font(None, 36)
             text = f.render(line.replace('\n', ''), False, 'red')
-            screen.blit(text, (20, 10 + i * 25))
+            screen.blit(text, (20, 35 + i * 25 ))
         i += 1
 
     create_but(x = 650,
@@ -477,6 +481,29 @@ def click_game(event):
     update_score(score)
 
 
+def results(k, score_new):
+    """
+    Окно, которое появляется после конца игры.
+    На на отображен результат игрока
+    k: место игрока в рейтинге
+    score_new: лучший результат игрока
+    """
+
+    dead()
+    print_rating()
+
+
+    list_text = ['Ваш счет: ' + str(SCORE), 'Ваш лучший счет: ' + str(score_new),
+                 'Ваше место в рейтинге: ' + str(k)]
+    
+    i = 0
+    for text0 in list_text:
+        f = pygame.font.Font(None, 36)
+        text = f.render(text0, False, 'red')
+        screen.blit(text, (200, 10 + i * 25))
+        i += 1
+        
+
 def update_results():
     """
     Обновляет результат данного игрока в файле.
@@ -485,6 +512,8 @@ def update_results():
     положение в рейтинге, сам рейтинг
     """
 
+    global FLAG, SCORE_BEST, K
+    
     flag = True
 
     print('Игра окончена!')
@@ -526,21 +555,18 @@ def update_results():
         else:
             k += 1
     
-    print('Ваш результат успешно записан!')
-    print('Ваш счет:', SCORE)
-    print('Ваш лучший счет:', score_new)
-    print('Ваше место в рейтинге:', k + 1)
-    print('Рейтинг:')
-    print(new_text)
-
+    K, SCORE_BEST = k + 1, score_new
+    FLAG = 5
+    
 
 def game_over():
     """
     Конец игры
     """
 
-    pygame.quit()
+    #pygame.quit()
     update_results()
+    dead()
     
 
 def create():
@@ -566,14 +592,15 @@ def check_TIME():
         TIME = 0
         if (FLAG):
             game_over()
-            FLAG = False
     else:
         TIME -= 1/FPS
         move()
-    
+
     
 pygame.display.update()
 clock = pygame.time.Clock()
+
+k, score_new = 0, 0 #Место игрока в рейтинге и его лучший счет
 
 while FLAG:
     clock.tick(FPS)
@@ -590,13 +617,15 @@ while FLAG:
     elif FLAG == 4:
         create()
         check_TIME()
+    elif FLAG == 5:
+        results(K, SCORE_BEST)
         
     #Обработка в зависимости от FLAG, в зависимости от события:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             FLAG = 0
 
-        if FLAG == 1 or FLAG == 2:
+        if FLAG == 1 or FLAG == 2 or FLAG == 5:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 click_buts(event)
         elif FLAG == 4:
