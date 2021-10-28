@@ -105,9 +105,14 @@ class Ball:
             Возвращает True в случае столкновения мяча и цели. В противном случае возвращает False.
         """
         
-        if (self.x - obj.x) ** 2 + (self.y - obj.y) ** 2 <= (self.r + obj.r) ** 2:
-            return True
-        return False
+        if obj.type == 1:
+            if (self.x - obj.x) ** 2 + (self.y - obj.y) ** 2 <= (self.r + obj.r) ** 2:
+                return True
+            return False
+        elif obj.type == 2:
+            if (self.x - obj.x) ** 2 + (self.y - obj.y) ** 2 <= (self.r + obj.r) ** 2:
+                return True
+            return False
 
 
 class Gun:
@@ -162,6 +167,7 @@ class Gun:
         """
         Рисует пушку
         """
+        
         x0, y0 = 40, 450 #Координаты нижнего левого угла
         L, b = self.L, self.b #Длина и ширина пушки
         an = -self.an #угол в радианах
@@ -199,19 +205,39 @@ def draw_text(text, x, y, color_text = 'black', font_text = 36):
 
 class Target:
 
-    def new_target(self):
-        """ Инициализация новой цели. """
+    def new_target1(self):
+        """ Инициализация новой мишени вида 1. """
         
-        x = self.x = randint(600, 780)
-        y = self.y = randint(300, 550)
-        r = self.r = randint(5, 50)
+        r = self.r = randint(10, 50)
         color = self.color = RED
-        self.live = 1
-
-    def __init__(self):
-        """Параметры объекта, как целое"""
+        self.live = 1 #Число жизней цели
+        self.points = 1
+        self.type = 1 #Тип мишени
         
-        self.points = 0
+    def new_target2(self):
+        """ Инициализация новой мишени вида 2. """
+        
+        r = self.r = randint(15, 50) 
+        color = self.color = MAGENTA
+        self.live = 1 #Число жизней цели
+        self.points = 2
+        self.type = 2 #Тип мишени
+        
+    def new_target(self):
+        """Создает новую мишень вида 1 или 2"""
+
+        x = self.x = randint(600, 750) 
+        y = self.y = randint(300, 550)
+        
+        if randint(1, 2) == 1:
+            self.new_target1()
+        else:
+            self.new_target2()
+            
+    def __init__(self):
+        """ Параметры объекта, как целое"""
+        
+        self.score = 0 #Счет
         self.new_target()
     
     def hit(self, ball, points = 1):
@@ -221,13 +247,11 @@ class Target:
         poins: очки за попадание в данную цель
         """
         
-        self.points += points
+        self.score += points
         ball.dead = 1
 
-    def draw(self):
-        """
-        Рисование цели
-        """
+    def draw1(self):
+        """Рисование цели 1"""
         
         pygame.draw.circle(
             screen,
@@ -235,14 +259,30 @@ class Target:
             (self.x, self.y),
             self.r
         )
+        
+    def draw2(self):
+        """Рисование цели 2"""
+        
+        pygame.draw.rect(
+            screen,
+            self.color,
+            (self.x, self.y, self.r, self.r)
+        )
 
+    def draw(self):
+        """Рисование цели"""
+
+        if self.type == 1:
+            self.draw1()
+        else:
+            self.draw2()
+    
     def score_draw(self):
         """
         Рисут счет
         """
 
-        score = self.points
-        draw_text('Score: '+ str(score), 10, 10)
+        draw_text('Score: '+ str(self.score), 10, 10)
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -282,7 +322,7 @@ while not finished:
         b.move()
         if b.hittest(target) and target.live:
             target.live -= 1
-            target.hit(b)
+            target.hit(b, target.points)
             target.new_target()
         if b.live == 0 or b.dead == 1:
             balls.pop(i)
