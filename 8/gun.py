@@ -112,12 +112,17 @@ class Ball:
 
 class Gun:
     def __init__(self, screen):
-        self.screen = screen
-        self.f2_power = 10
-        self.f2_on = 0
-        self.an = 1
-        self.color = GREY
-
+        self.screen = screen #Экран
+        self.f2_power = 10 #Начальная скорость шариков
+        self.f2_on = 0 #Начата ли стрельба. 1, если да.
+        self.an = 0 #Начальный угол
+        self.color = GREY #Цвет пушки
+        self.b = 7 #Ширина пушки
+        self.L = 20 #Длина пушки
+        self.L_min = 20 #Начальная длина пушки (минимальная)
+        self.L_max = 90 #Максимальная длина пушки
+        self.max_power = 100 #Максимальная скорость шарика
+        
     def fire2_start(self, event):
         self.f2_on = 1
 
@@ -137,6 +142,7 @@ class Gun:
         balls.append(new_ball)
         self.f2_on = 0
         self.f2_power = 10
+        self.L = self.L_min
 
     def power_up(self):
         """
@@ -146,25 +152,35 @@ class Gun:
         if self.f2_on:
             if self.f2_power < 100:
                 self.f2_power += 1
-            self.color = RED
+            self.color = YELLOW
+            self.L = self.L_min + (self.L_max - self.L_min) * (self.f2_power - self.f2_on) / (self.max_power - self.f2_on)
+            
         else:
-            self.color = GREY
+            self.color = BLACK
 
-    def targetting(self, event):
+    def draw(self):
+        """
+        Рисует пушку
+        """
+        x0, y0 = 40, 450 #Координаты нижнего левого угла
+        L, b = self.L, self.b #Длина и ширина пушки
+        an = -self.an #угол в радианах
+        pygame.draw.polygon(self.screen, self.color, [(x0, y0),
+                                                 (x0 + L * math.cos(an), y0 - L * math.sin(an)),
+                                                 (x0 + L * math.cos(an) - b * math.sin(an), y0 - L * math.sin(an) - b * math.cos(an)),
+                                                 (x0 - b * math.sin(an), y0 - b * math.cos(an)),
+                                                 (x0, y0)])
+        
+    def targetting(self):
         """Прицеливание. Зависит от положения мыши."""
 
         if event:
-            pass
-            #self.an = math.atan((event.pos[1]-450) / (event.pos[0]-20))
+            self.an = math.atan((event.pos[1]-450) / (event.pos[0]-20))
         if self.f2_on:
-            self.color = RED
+            self.color = YELLOW
         else:
-            self.color = GREY
+            self.color = BLACK
 
-    def draw(self):
-        # FIXIT don't know how to do it
-        pass
-    
 
 
 def draw_text(text, x, y, color_text = 'black', font_text = 36):
@@ -257,8 +273,9 @@ while not finished:
         elif event.type == pygame.MOUSEBUTTONUP:
             gun.fire2_end(event)
         elif event.type == pygame.MOUSEMOTION:
-            pass
-
+            gun.targetting()
+            gun.draw()
+            
     i = 0
     while i < len(balls):
         b = balls[i]
