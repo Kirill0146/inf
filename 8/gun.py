@@ -213,15 +213,19 @@ class Target:
         self.live = 1 #Число жизней цели
         self.points = 1
         self.type = 1 #Тип мишени
+        self.vx = randint(-10, 10)
+        self.vy = randint(-10, 10)
         
     def new_target2(self):
         """ Инициализация новой мишени вида 2. """
         
-        r = self.r = randint(15, 50) 
+        r = self.r = randint(25, 50) 
         color = self.color = MAGENTA
-        self.live = 1 #Число жизней цели
+        self.live = 2 #Число жизней цели
         self.points = 2
         self.type = 2 #Тип мишени
+        self.vx = randint(-10, 10)
+        self.vy = randint(-10, 10)
         
     def new_target(self):
         """Создает новую мишень вида 1 или 2"""
@@ -244,11 +248,16 @@ class Target:
         """
         Попадание шарика в цель.
         ball: попавший шарик
-        poins: очки за попадание в данную цель
+        points: очки за попадание в данную цель
         """
         
         self.score += points
         ball.dead = 1
+        
+        if self.live == 1 and self.type == 2:
+            self.color = RED
+            self.vx *= 2
+            self.vy *= 2
 
     def draw1(self):
         """Рисование цели 1"""
@@ -274,15 +283,58 @@ class Target:
 
         if self.type == 1:
             self.draw1()
-        else:
+        elif self.type == 2:
             self.draw2()
     
     def score_draw(self):
-        """
-        Рисут счет
-        """
+        """Рисут счет"""
 
-        draw_text('Score: '+ str(self.score), 10, 10)
+        draw_text('Score: '+ str(self.score), 10, 10)   
+
+    def board(self):
+        """
+        Проверка и обработка выхода за пределы стен
+        """
+        
+        if self.x > WIDTH:
+            self.x = WIDTH
+            self.vx *= -1
+            
+        if self.x < WIDTH / 2:
+            self.x = WIDTH / 2
+            self.vx *= -1
+            
+        if self.y > HEIGHT:
+            self.y = HEIGHT
+            self.vy *= -0.7
+            
+        if self.y < 0 :
+            self.y = 0
+            self.vy *= -1
+            
+    def move1(self):
+        """Перемещает цель типа 1 по прошествии единицы времени"""
+
+        self.x += self.vx
+        self.y += self.vy
+
+        self.board()
+
+    def move2(self):
+        """Перемещает цель типа 2 по прошествии единицы времени"""
+
+        self.x += self.vx
+        self.y += self.vy
+
+        self.board()
+     
+    def move(self):
+        """Перемещает цель по прошествии единицы времени"""
+        
+        if self.type == 1:
+            self.move1()
+        elif self.type == 2:
+            self.move2()
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -323,11 +375,12 @@ while not finished:
         if b.hittest(target) and target.live:
             target.live -= 1
             target.hit(b, target.points)
-            target.new_target()
+            if target.live == 0:
+                target.new_target()
         if b.live == 0 or b.dead == 1:
             balls.pop(i)
         else:
             i += 1
     gun.power_up()
-    
+    target.move()
 pygame.quit()
