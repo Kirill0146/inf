@@ -22,14 +22,14 @@ GAME_COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN]
 WIDTH = 800
 HEIGHT = 600
 
-bullet = 0
 balls = []
 
 class Ball:
-    def __init__(self, screen: pygame.Surface, x = 40, y = 450, g = 1, r = 10, live = 100):
+    def __init__(self, screen: pygame.Surface, ball_type = 1, x = 40, y = 450, g = 1, r = 10, live = 100):
         """ Конструктор класса ball
 
         Args:
+        ball_type - тип снарядов
         x - начальное положение мяча по горизонтали
         y - начальное положение мяча по вертикали
         g - ускорение шарика по оси игрек
@@ -48,6 +48,23 @@ class Ball:
         self.live = live
         self.dead = 0
 
+    def new_ball(self, ball_type):
+        """Изменение нового шарика в зависимости от его типа"""
+        
+        self.type = ball_type
+
+        if self.type == 1:
+            pass
+        elif self.type == 2:
+            self.r *= 2
+            self.vx /= 2
+            self.vy /= 2
+        elif self.type == 3:
+            self.vx *= 2
+            self.vy *= 2
+            self.r /= 2
+        
+    
     def board(self):
         """
         Проверка и обработка выхода за пределы стен
@@ -128,6 +145,7 @@ class Gun:
         self.L_min = 20 #Начальная длина пушки (минимальная)
         self.L_max = 90 #Максимальная длина пушки
         self.max_power = 100 #Максимальная скорость шарика
+        self.type = 1 #Выбранный тип снарядов
         
     def fire2_start(self, event):
         self.f2_on = 1
@@ -139,16 +157,18 @@ class Gun:
         Начальные значения компонент скорости мяча vx и vy зависят от положения мыши.
         """
         
-        global balls, bullet
-        bullet += 1
-        new_ball = Ball(self.screen)
-        self.an = math.atan2((event.pos[1]-new_ball.y), (event.pos[0]-new_ball.x))
-        new_ball.vx = self.f2_power * math.cos(self.an)
-        new_ball.vy =  self.f2_power * math.sin(self.an)
-        balls.append(new_ball)
+        global balls
+        
+        n_ball = Ball(screen)
+        self.an = math.atan2((event.pos[1]-n_ball.y), (event.pos[0]-n_ball.x))
+        n_ball.vx = self.f2_power * math.cos(self.an)
+        n_ball.vy =  self.f2_power * math.sin(self.an)
+        balls.append(n_ball)
         self.f2_on = 0
         self.f2_power = 10
         self.L = self.L_min
+
+        n_ball.new_ball(self.type)
 
     def power_up(self):
         """
@@ -228,6 +248,10 @@ class Target:
         self.vx0 = randint(-10, 10) #Начальная скорость по оси икс
         self.vy0 = randint(-10, 10) #Начальная скорость по оси игрек
         self.vx, self.vy = self.vx0, self.vy0
+        self.ax0 = 1 #Начальное ускорение по оси икс
+        self.ay0 = 1 #Начальное ускорение по оси игрек
+        self.ax, self.ay = self.ax0, self.ay0
+
         
     def new_target(self):
         """Создает новую мишень вида 1 или 2"""
@@ -328,13 +352,14 @@ class Target:
     def move2(self):
         """Перемещает цель типа 2 по прошествии единицы времени"""
 
-        k, r = 0.1, 10
+        k, r = 0.1, 10 #Параметры траектории движения целей
         
         self.x += self.vx
         self.y += self.vy
-        self.vx += -self.vx0 * math.sin(k * TIME) / r
-        self.vy += -self.vy0 * math.cos(k * TIME) / r
-        
+        self.vx += self.ax
+        self.vy += self.ay
+        self.ax = self.ax0 * math.cos(k * TIME)
+        self.ay = self.ay0 * math.sin(k * TIME)
         self.board()
      
     def move(self):
@@ -344,6 +369,18 @@ class Target:
             self.move1()
         elif self.type == 2:
             self.move2()
+
+def draw_all():
+    """Рисует все объекты заново"""
+    
+    screen.fill(WHITE)
+    gun.draw()
+    target.draw()
+    target.score_draw()
+    
+    for b in balls:
+        b.draw()
+    pygame.display.update()
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -355,16 +392,9 @@ finished = False
 
 while not finished:
     
-    screen.fill(WHITE)
-    gun.draw()
-    target.draw()
-    target.score_draw()
-    
-    for b in balls:
-        b.draw()
-    pygame.display.update()
+    draw_all() #Перерисовывает все объекты
 
-
+    #Обработка событий:
     clock.tick(FPS)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -376,7 +406,16 @@ while not finished:
         elif event.type == pygame.MOUSEMOTION:
             gun.targetting()
             gun.draw()
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_1:
+                gun.type = 1 #Обычные снаряды
+            elif event.key == pygame.K_2:
+                gun.type = 2 #Большие и тяжелые снаряды
+            elif event.key == pygame.K_3:
+                gun.type = 3 #Маленькие и легкие снаряды
             
+
+    #Обработка без событий:        
     i = 0
     while i < len(balls):
         b = balls[i]
@@ -390,8 +429,9 @@ while not finished:
             balls.pop(i)
         else:
             i += 1
-    gun.power_up()
-    target.move()
+            
+    gun.power_up() #Обновляет скорость, если идет прицеливание
+    target.move() #Обновляет движение цели
 
     TIME -= 1/FPS
     
