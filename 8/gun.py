@@ -6,6 +6,7 @@ import pygame
 
 
 FPS = 30
+TIME = 0
 
 RED = 0xFF0000
 BLUE = 0x0000FF
@@ -224,8 +225,9 @@ class Target:
         self.live = 2 #Число жизней цели
         self.points = 2
         self.type = 2 #Тип мишени
-        self.vx = randint(-10, 10)
-        self.vy = randint(-10, 10)
+        self.vx0 = randint(-10, 10) #Начальная скорость по оси икс
+        self.vy0 = randint(-10, 10) #Начальная скорость по оси игрек
+        self.vx, self.vy = self.vx0, self.vy0
         
     def new_target(self):
         """Создает новую мишень вида 1 или 2"""
@@ -254,10 +256,13 @@ class Target:
         self.score += points
         ball.dead = 1
         
-        if self.live == 1 and self.type == 2:
-            self.color = RED
-            self.vx *= 2
-            self.vy *= 2
+        if self.type == 1:
+            pass
+        elif self.type == 2:
+            if self.live == 1:
+                self.color = RED
+                self.vx *= 2
+                self.vy *= 2
 
     def draw1(self):
         """Рисование цели 1"""
@@ -323,9 +328,13 @@ class Target:
     def move2(self):
         """Перемещает цель типа 2 по прошествии единицы времени"""
 
+        k, r = 0.1, 10
+        
         self.x += self.vx
         self.y += self.vy
-
+        self.vx += -self.vx0 * math.sin(k * TIME) / r
+        self.vy += -self.vy0 * math.cos(k * TIME) / r
+        
         self.board()
      
     def move(self):
@@ -383,4 +392,7 @@ while not finished:
             i += 1
     gun.power_up()
     target.move()
+
+    TIME -= 1/FPS
+    
 pygame.quit()
