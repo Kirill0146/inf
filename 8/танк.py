@@ -7,6 +7,8 @@ import pygame
 
 FPS = 30
 TIME = 0
+SCORE = 0
+N_TARGETS = 5
 
 RED = 0xFF0000
 BLUE = 0x0000FF
@@ -23,6 +25,8 @@ WIDTH = 800
 HEIGHT = 600
 
 balls = []
+bombs = []
+targets = []
 
 class Ball:
     def __init__(self, screen: pygame.Surface, ball_type = 1, x = 40, y = 450, g = 1, r = 10, live = 100):
@@ -135,6 +139,8 @@ class Ball:
 
 class Gun:
     def __init__(self, screen):
+        """Конструктор класса Gun"""
+        
         self.screen = screen #Экран
         self.f2_power = 10 #Начальная скорость шариков
         self.f2_on = 0 #Начата ли стрельба. 1, если да.
@@ -153,8 +159,8 @@ class Gun:
         self.down = 0 #Едит ли танк вниз
         self.x = 40 #Координата левого нижнего угла танка
         self.y = 450 #Координата левого нижнего угла танка
-        self.mouse_x = 40
-        self.mouse_y = 450
+        self.mouse_x = 40 #Координаты мыши
+        self.mouse_y = 450 #Координаты мыши
         
     def fire2_start(self, event):
         self.f2_on = 1
@@ -265,6 +271,36 @@ def draw_text(text, x, y, color_text = 'black', font_text = 36):
     screen.blit(text, (x, y))
 
 
+class Bobm:
+    def __init__(self, x, y, vx = 0, vy = 0, ay = 1, color = BLACK, r = 5):
+        """Конструктор класса Bomb"""
+        
+        self.vx = vx
+        self.vy = vy
+        self.color = color
+        self.r = r
+        self.ay = ay
+        self.x = x
+        self.y = y
+        
+    def move(self):
+        """Движение бомбы"""
+        
+        self.x += self.vx
+        self.y += self.vy
+        self.vy += self.ay
+
+    def draw(self):
+        """Рисует бомбу"""
+        
+        pygame.draw.circle(
+            self.screen,
+            self.color,
+            (self.x, self.y),
+            self.r
+        )
+    
+
 class Target:
 
     def new_target1(self):
@@ -317,8 +353,10 @@ class Target:
         ball: попавший шарик
         points: очки за попадание в данную цель
         """
+
+        global SCORE
         
-        self.score += points
+        SCORE += points
         ball.dead = 1
         
         if self.type == 1:
@@ -355,11 +393,7 @@ class Target:
             self.draw1()
         elif self.type == 2:
             self.draw2()
-    
-    def score_draw(self):
-        """Рисут счет"""
 
-        draw_text('Score: '+ str(self.score), 10, 10)   
 
     def board(self):
         """
@@ -370,8 +404,8 @@ class Target:
             self.x = WIDTH
             self.vx *= -1
             
-        if self.x < WIDTH / 2:
-            self.x = WIDTH / 2
+        if self.x < WIDTH / 3:
+            self.x = WIDTH / 3
             self.vx *= -1
             
         if self.y > HEIGHT:
@@ -411,13 +445,28 @@ class Target:
         elif self.type == 2:
             self.move2()
 
+
+    def new_bomb(self):
+        """Мишень скидывает бомбу"""
+
+        bomb = Bomb(self.x, self.y)
+        bobms.append(bomb)
+
+def score_draw():
+    """Рисут счет"""
+
+    draw_text('Score: '+ str(SCORE), 10, 10)
+
 def draw_all():
     """Рисует все объекты заново"""
     
     screen.fill(WHITE)
     gun.draw()
+    score_draw()
     target.draw()
-    target.score_draw()
+    
+    for t in targets:
+        t.draw()
     
     for b in balls:
         b.draw()
@@ -428,7 +477,12 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 clock = pygame.time.Clock()
 gun = Gun(screen)
-target = Target()
+
+
+for i in range(N_TARGETS):
+    target = Target()
+    targets.append(target)
+
 finished = False
 
 while not finished:
@@ -480,18 +534,25 @@ while not finished:
     while i < len(balls):
         b = balls[i]
         b.move()
-        if b.hittest(target) and target.live:
-            target.live -= 1
-            target.hit(b, target.points)
-            if target.live == 0:
-                target.new_target()
+        for j in range(len(targets)):
+            target = targets[j]
+            
+            if b.hittest(target) and target.live:
+                target.live -= 1
+                target.hit(b, target.points)
+                if target.live == 0:
+                    target.new_target()
+    
         if b.live == 0 or b.dead == 1:
             balls.pop(i)
         else:
             i += 1
             
+    for j in range(len(targets)):
+        targets[j].move()
+
+    
     gun.power_up() #Обновляет скорость, если идет прицеливание
-    target.move() #Обновляет движение цели
     gun.move()
     
     TIME -= 1/FPS
