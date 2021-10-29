@@ -153,7 +153,9 @@ class Gun:
         self.down = 0 #Едит ли танк вниз
         self.x = 40 #Координата левого нижнего угла танка
         self.y = 450 #Координата левого нижнего угла танка
-    
+        self.mouse_x = 40
+        self.mouse_y = 450
+        
     def fire2_start(self, event):
         self.f2_on = 1
 
@@ -167,9 +169,13 @@ class Gun:
         global balls
         
         n_ball = Ball(screen, x = self.x, y = self.y)
-        #self.an = math.atan2((event.pos[1]-n_ball.y), (event.pos[0]-n_ball.x))
         n_ball.vx = self.f2_power * math.cos(self.an)
         n_ball.vy =  self.f2_power * math.sin(self.an)
+        
+        if self.mouse_x < self.x:
+            n_ball.vx *= -1
+            n_ball.vy *= -1
+            
         balls.append(n_ball)
         self.f2_on = 0
         self.f2_power = 10
@@ -199,17 +205,35 @@ class Gun:
         x0, y0 = self.x, self.y #Координаты нижнего левого угла
         L, b = self.L, self.b #Длина и ширина пушки
         an = -self.an #угол в радианах
+
+        if x0 <= self.mouse_x:
+            pass
+        else:
+            L *= -1
+            b *= -1
+            
         pygame.draw.polygon(self.screen, self.color, [(x0, y0),
-                                                 (x0 + L * math.cos(an), y0 - L * math.sin(an)),
-                                                 (x0 + L * math.cos(an) - b * math.sin(an), y0 - L * math.sin(an) - b * math.cos(an)),
-                                                 (x0 - b * math.sin(an), y0 - b * math.cos(an)),
-                                                 (x0, y0)])
+            (x0 + L * math.cos(an), y0 - L * math.sin(an)),
+            (x0 + L * math.cos(an) - b * math.sin(an), y0 - L * math.sin(an) - b * math.cos(an)),
+            (x0 - b * math.sin(an), y0 - b * math.cos(an)),
+            (x0, y0)])
+
+            
         
     def targetting(self):
         """Прицеливание. Зависит от положения мыши."""
 
         if event:
-            self.an = math.atan((event.pos[1]-self.y) / (event.pos[0]-self.x))
+            x0, y0 = event.pos[0], event.pos[1]
+            self.mouse_x, self.mouse_y = x0, y0
+            
+            if x0 > self.x:
+                self.an = math.atan((y0-self.y) / (x0-self.x))
+            elif x0 == self.x:
+                self.an = math.pi / 2
+            elif x0 < self.x:
+                self.an = math.atan((y0-self.y) / (x0-self.x))
+            
         if self.f2_on:
             self.color = YELLOW
         else:
