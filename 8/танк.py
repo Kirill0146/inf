@@ -175,10 +175,6 @@ class Tank:
         self.image = pygame.image.load('images/tank.png').convert_alpha() #Картинка танка
         self.image_start = self.image #Сохраняем исходную экземпляр
         self.hp = 3 #Жизни танка
-        self.mask = pygame.mask.from_surface(self.image)
-        self.rect = self.image.get_rect()
-        self.rect.x = self.x
-        self.rect.y = self.y
         
     def fire2_start(self, event):
         self.f2_on = 1
@@ -294,10 +290,6 @@ class Bomb(pygame.sprite.Sprite):
         self.y = y #Координата игрек бомбы
         self.image = pygame.image.load('images/bomb_2.png').convert_alpha() #Картинка бомбы
         self.image_start = self.image #Сохраняем исходную экземпляр
-        self.mask = pygame.mask.from_surface(self.image)
-        self.rect = self.image.get_rect()
-        self.rect.x = self.x
-        self.rect.y = self.y
         self.flag = True
         self.add(bombs)
         self.time0 = -999
@@ -325,8 +317,8 @@ class Bomb(pygame.sprite.Sprite):
         
         obj.mask = pygame.mask.from_surface(obj.image)
         obj.rect = obj.image.get_rect()
-        obj.rect.x = obj.x
-        obj.rect.y = obj.y
+        obj.rect.x = obj.x - obj.image.get_size()[0] / 2
+        obj.rect.y = obj.y - obj.image.get_size()[1] / 2
         
         if pygame.sprite.collide_mask(self, obj):
             return True
