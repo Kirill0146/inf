@@ -25,14 +25,13 @@ def calculate_force(body, space_objects):
         body.Fx += dx/r*F  
         body.Fy += dy/r*F 
 
-def move_space_object(body, dt):
+def move_space_object(body, dt, physical_time):
     """Перемещает тело в соответствии с действующей на него силой.
 
     Параметры:
 
     **body** — тело, которое нужно переместить.
     """
-    dt *= 1000
     ax = body.Fx/body.m
     body.x += body.Vx*dt 
     body.Vx += ax*dt
@@ -40,7 +39,17 @@ def move_space_object(body, dt):
     body.y += body.Vy*dt 
     body.Vy += ay*dt
     
-def recalculate_space_objects_positions(space_objects, dt):
+    V = (body.Vx ** 2 + body.Vy ** 2) ** 0.5
+    r = (body.x ** 2 + body.y ** 2) ** 0.5
+    
+    body.V_t.append(V)
+    body.r_t.append(r)
+    
+    body.t_t.append(physical_time)
+
+    
+    
+def recalculate_space_objects_positions(space_objects, dt, physical_time):
     """Пересчитывает координаты объектов.
 
     Параметры:
@@ -52,7 +61,7 @@ def recalculate_space_objects_positions(space_objects, dt):
     for body in space_objects:
         calculate_force(body, space_objects)
     for body in space_objects:
-        move_space_object(body, dt)
+        move_space_object(body, dt, physical_time)
 
 
 if __name__ == "__main__":

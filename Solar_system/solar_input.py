@@ -1,7 +1,7 @@
 # coding: utf-8
 # license: GPLv3
 
-from solar_objects import Star, Planet
+from solar_objects import Star, Planet, Graph
 
 
 def read_space_objects_data_from_file(input_filename):
@@ -32,6 +32,48 @@ def read_space_objects_data_from_file(input_filename):
 
     return objects
 
+def read_graphs_from_file(input_filename):
+    """Cчитывает данные о космических объектах из файла для построения графиков
+
+    Параметры:
+
+    **input_filename** — имя входного файла
+    """
+
+    def float_list(s):
+        """Переводит список из строк в список вещественных чисел"""
+        for i in range(len(s)):
+            s[i] = float(s[i])
+
+        return s
+
+    graph_objects = []
+    with open(input_filename) as input_file:
+        count = 0
+        lines = []
+        for line in input_file:
+            if len(line.strip()) == 0 or line[0] == '#':
+                continue  # пустые строки и строки-комментарии пропускаем
+            else:
+                if count == 0:
+                    lines.append(line.split())
+                else:
+                    line = line.split()
+                    for i in range(len(line)):
+                        line[i] = float(line[i])
+                    lines.append(line)
+                count += 1
+            if count == 4:
+                count = 0
+                graph = Graph()
+                graph.V_t = float_list(lines[1])
+                graph.r_t = float_list(lines[2])
+                graph.t_t = float_list(lines[3])
+                graph.type = lines[0][0]
+                graph.N = int(lines[0][1])
+                graph_objects.append(graph)
+                lines = []
+    return graph_objects
 
 def parse_star_parameters(line, star):
     """Считывает данные о звезде из строки.
@@ -103,7 +145,38 @@ def write_space_objects_data_to_file(output_filename, space_objects):
         out_file.write(text)
             
 
-# FIXME: хорошо бы ещё сделать функцию, сохранающую статистику в заданный файл...
+def write_graphs_to_file(output_filename, space_objects):
+    """Сохраняет данные о космических объектах для графиков в файл.
+    Строки должны иметь следующий формат:
+        <type> <Номер объекта>
+        Далее идет 3 списка:
+            V_t (список скоростей)
+            r_t (список радиусов)
+            t_t (список времен)
+    Параметры:
+
+    **output_filename** — имя входного файла
+    **space_objects** — список объектов планет и звёзд
+    """
+
+    def list_in_str(s):
+        """Переводит список в строку"""
+        text = ""
+        for a in s:
+            text += str(a) + " "
+        return text
+    
+    with open(output_filename, 'w') as out_file:
+        text = ""
+        i = 0
+        for obj in space_objects:
+            i += 1
+            text += obj.type + ' ' + str(i) + '\n'
+            text += list_in_str(obj.V_t) + '\n'
+            text += list_in_str(obj.r_t) + '\n'
+            text += list_in_str(obj.t_t) + '\n'
+        out_file.write(text)
+
 
 if __name__ == "__main__":
     print("This module is not for direct call!")

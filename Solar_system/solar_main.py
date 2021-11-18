@@ -2,6 +2,7 @@
 # license: GPLv3
 
 import tkinter
+import os
 from tkinter.filedialog import *
 from solar_vis import *
 from solar_model import *
@@ -34,7 +35,7 @@ def execution():
     """
     global physical_time
     global displayed_time
-    recalculate_space_objects_positions(space_objects, time_step.get())
+    recalculate_space_objects_positions(space_objects, time_step.get(), physical_time)
     for body in space_objects:
         update_object_position(space, body)
     physical_time += time_step.get()
@@ -91,12 +92,34 @@ def open_file_dialog():
         else:
             raise AssertionError()
 
+def open_file_dialog_graphs():
+    """Открывает диалоговое окно выбора имени файла и вызывает
+    функцию считывания данных из файла для построения графика.
+    """
+
+    global space_objects
+    global perform_execution
+    perform_execution = False
+
+    in_filename = askopenfilename(filetypes=(("Text file", ".txt"),))
+    graph_objects = read_graphs_from_file(in_filename)
+    draw_graph(graph_objects)
+
+def save_file_dialog_graphs():
+    """Открывает диалоговое окно выбора имени файла и
+    сохраняет график
+    """
+    
+    out_filename = asksaveasfilename(filetypes=(("Text file", ".txt"),))
+    write_graphs_to_file(out_filename, space_objects)
+    
+
 
 def save_file_dialog():
     """Открывает диалоговое окно выбора имени файла и вызывает
-    функцию считывания параметров системы небесных тел из данного файла.
-    Считанные объекты сохраняются в глобальный список space_objects
+    функцию сохраянения конфигурации системы
     """
+    
     out_filename = asksaveasfilename(filetypes=(("Text file", ".txt"),))
     write_space_objects_data_to_file(out_filename, space_objects)
 
@@ -105,6 +128,7 @@ def main():
     """Главная функция главного модуля.
     Создаёт объекты графического дизайна библиотеки tkinter: окно, холст, фрейм с кнопками, кнопки.
     """
+    
     global physical_time
     global displayed_time
     global time_step
@@ -139,12 +163,16 @@ def main():
     load_file_button.pack(side=tkinter.LEFT)
     save_file_button = tkinter.Button(frame, text="Save to file...", command=save_file_dialog)
     save_file_button.pack(side=tkinter.LEFT)
-
+    
+    load_file_button = tkinter.Button(frame, text="Open file with graphs...", command=open_file_dialog_graphs)
+    load_file_button.pack(side=tkinter.LEFT)
+    save_file_button = tkinter.Button(frame, text="Save to file with graphs...", command=save_file_dialog_graphs)
+    save_file_button.pack(side=tkinter.LEFT)
+    
     displayed_time = tkinter.StringVar()
     displayed_time.set(str(physical_time) + " seconds gone")
     time_label = tkinter.Label(frame, textvariable=displayed_time, width=30)
     time_label.pack(side=tkinter.RIGHT)
-
     root.mainloop()
     print('Modelling finished!')
 
