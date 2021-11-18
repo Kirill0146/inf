@@ -103,7 +103,7 @@ def open_file_dialog_graphs():
 
     in_filename = askopenfilename(filetypes=(("Text file", ".txt"),))
     graph_objects = read_graphs_from_file(in_filename)
-    draw_graph(graph_objects)
+    draw_graph(graph_objects, space)
 
 def save_file_dialog_graphs():
     """Открывает диалоговое окно выбора имени файла и
@@ -137,6 +137,16 @@ def main():
     global start_button
 
     print('Modelling started!')
+    text = """С момента запуска программы данные движения объектов сохранятся автоматически.
+Для добавления данных в статистику необходимо нажать на кнопку "Save to file with graphs..."
+и выбрать файл, в который хотите сохранить статистику.
+Для визуального отображения статистики в виде графиков нажмите на кнопку
+"Open file with graphs...". Затем выберите файл, в котором записана статистика.
+Откроется новое окно: Пульт управления.
+Введите в поле номер объекта, графики которых хотите увидеть, затем нажмите кнопку "OK".
+"""
+    print(text)
+    
     physical_time = 0
 
     root = tkinter.Tk()

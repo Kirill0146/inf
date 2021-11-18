@@ -3,6 +3,8 @@
 
 from solar_main import *
 from solar_graph import *
+import tkinter
+
 """Модуль визуализации.
 Нигде, кроме этого модуля, не используются экранные координаты объектов.
 Функции, создающие географические объекты и перемещающие их на экране, принимают физические координаты
@@ -119,11 +121,41 @@ def update_object_position(space, body):
     space.coords(body.image, x - r, y - r, x + r, y + r)
 
 
-def draw_graph(graph_objects):
-    """Рисует графики зависимости V(t), r(t)"""
-    for g in graph_objects:
-        if g.N == 2:
-            G(g)
+def draw_graph(graph_objects, space):
+    """Отображает пульт управления, нужный для построения графиков.
+    Пользователь вводит номер объекта, данные которого интересуют его
+
+    Параметры:
+
+    **graph_objects** - список объектов со всем необходимым для графиков (V(t), r(t))
+    **space** - холст, через который будет создавать пульт управления (формально root)
+    """
+
+    window = tkinter.Toplevel(space)
+    window.geometry('250x120')
+    window.title('Пульт')
+
+    label = tkinter.Label(window, text = "Enter object number:")
+    label.pack(pady = 4)
+    
+    N = tkinter.DoubleVar()
+    N.set(0)
+    entry = tkinter.Entry(window, text = 'Введите номер объекта', textvariable = N)
+    entry.pack(pady = 8)
+
+    def do_graph():
+        """Функция, вызывающая построение графиков для объекта с заданным номером"""
+        
+        n = N.get()
+        for g in graph_objects:
+            if g.N == n:
+                G(g)
+            
+
+    but = tkinter.Button(window, text = 'OK', command = do_graph, height = 10, width = 12)
+    but.pack(pady = 8)
+    
+    window.mainloop()
 
 if __name__ == "__main__":
     print("This module is not for direct call!")
